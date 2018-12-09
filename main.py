@@ -9,39 +9,52 @@ import glob
 import pandas as pd
 from sklearn.model_selection import train_test_split
 import re
+import sys
+import pickle
 
 
+"""Main Function"""
+def mainfunc():
+    if len(sys.argv) <= 1:
+        print('Please pass the correct argument. (initialize, train,...)')
+    elif sys.argv[1] == 'initialize':
+        getdataset()
 
-hamfiles = glob.glob("/home/xeonel/Documents/ee514assignment/dataset/allham/*.txt")
-spamfiles = glob.glob("/home/xeonel/Documents/ee514assignment/dataset/allspam/*.txt")
+"""Initialization Function"""
+def getdataset():
+    print('Loading Datasets ham and spam')
+    hamfiles = glob.glob("dataset/allham/*.txt")
+    spamfiles = glob.glob("dataset/allspam/*.txt")
 
-allhams = []
+    allhams = []
 
-print(hamfiles.count)
+    for hamfile in hamfiles:
+        msg = open(hamfile, encoding="ascii", errors="surrogateescape").read()
+        msg = re.findall(r'\w+', msg)
+        allhams.append(msg)
 
-for hamfile in hamfiles:
-    msg = open(hamfile, encoding="ascii", errors="surrogateescape").read()
-    msg = re.findall(r'\w+', msg)
-    allhams.append(msg)
+    allspams = []
 
-allspams = []
-
-for spamfile in spamfiles:
-    msg = open(spamfile, encoding="ascii", errors="surrogateescape").read()
-    msg = re.findall(r'\w+', msg)
-    allspams.append(msg)
+    for spamfile in spamfiles:
+        msg = open(spamfile, encoding="ascii", errors="surrogateescape").read()
+        msg = re.findall(r'\w+', msg)
+        allspams.append(msg)
 
 
-hammessagesdf = pd.DataFrame({'content' : pd.Series(allhams),
-                           'spam' : False})
+    hammessagesdf = pd.DataFrame({'content' : pd.Series(allhams),
+                               'spam' : False})
+
+    spammessagesdf = pd.DataFrame({'content' : pd.Series(allspams),
+                               'spam' : True})
+
+    messagesdf = pd.concat([hammessagesdf, spammessagesdf])
+
+    messagesdf = messagesdf.sample(frac=1).reset_index(drop=True)
+
+    trainingdf, testdf = train_test_split(messagesdf, test_size=0.3)
     
-spammessagesdf = pd.DataFrame({'content' : pd.Series(allspams),
-                           'spam' : True})
+    return
 
-messagesdf = pd.concat([hammessagesdf, spammessagesdf])
 
-messagesdf = messagesdf.sample(frac=1).reset_index(drop=True)
-
-trainingdf, testdf = train_test_split(messagesdf, test_size=0.3)
-
-""" not touching test set from now xD """
+        
+mainfunc()
