@@ -33,16 +33,27 @@ def getdataset():
     allhams = []
 
     for hamfile in hamfiles:
-        msg = open(hamfile, encoding="ascii", errors="surrogateescape").read()
-        msg = re.findall(r'\w+', msg)
-        allhams.append(msg)
+        omsg = open(hamfile, encoding="ascii", errors="surrogateescape").read()
+        msg = re.findall(r'\w+', omsg)
+        msg.pop(0)
+        if len(msg) == 0:
+            print("message empty, omitting")
+            print(omsg)
+        else:
+            allhams.append(msg)
+
 
     allspams = []
 
     for spamfile in spamfiles:
-        msg = open(spamfile, encoding="ascii", errors="surrogateescape").read()
-        msg = re.findall(r'\w+', msg)
-        allspams.append(msg)
+        omsg = open(spamfile, encoding="ascii", errors="surrogateescape").read()
+        msg = re.findall(r'\w+', omsg)
+        msg.pop(0)
+        if len(msg) == 0:
+            print("message empty, omitting")
+            print(omsg)
+        else:
+            allspams.append(msg)
 
 
     hammessagesdf = pd.DataFrame({'content' : pd.Series(allhams),
@@ -69,6 +80,7 @@ def train():
     print('Training using training.df')
     with open('dataset/training.df', 'rb') as training_file:
         trainingdf = pickle.load(training_file)
-    print(pd.Series(trainingdf["content"]))
-        
+    contents = pd.Series(trainingdf["content"])
+
+
 mainfunc()
