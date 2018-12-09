@@ -9,13 +9,25 @@ Created on Sun Dec  9 01:18:46 2018
 import glob
 import pandas as pd
 
-allhams = glob.glob("/home/xeonel/Documents/ee514assignment/dataset/allham/*.txt")
-print(allhams[0])
+hamfiles = glob.glob("/home/xeonel/Documents/ee514assignment/dataset/allham/*.txt")
+spamfiles = glob.glob("/home/xeonel/Documents/ee514assignment/dataset/allspam/*.txt")
 
 """
-s = open(allhams[0]).read()
+s = open(hamfiles[0]).read()
 print(s)
+str(msg, errors='ignore')
 """
 
-for hamfile in allhams:
-    s = open(hamfile).read()
+allhams = []
+
+print(hamfiles.count)
+
+for hamfile in hamfiles:
+    msg = open(hamfile, encoding="ascii", errors="surrogateescape").read()
+    allhams.append(msg)
+
+allspams = []
+
+for spamfile in spamfiles:
+    msg = open(spamfile, encoding="ascii", errors="surrogateescape").read()
+    allspams.append(msg)
