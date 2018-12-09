@@ -11,9 +11,10 @@ from sklearn.model_selection import train_test_split
 import re
 import sys
 import pickle
+from nltk.corpus import stopwords
 
 
-"""Main Function"""
+#Main Function
 def mainfunc():
     if len(sys.argv) <= 1:
         print('Please pass the correct argument. (initialize, train,...)')
@@ -24,7 +25,15 @@ def mainfunc():
     else:
         print("Invalid Commandline Arguments")
 
-"""Initialization Function"""
+#Remove Stop words
+def stopwordremover(bagofwords):
+        returnlist = []
+        for x in bagofwords:
+            if x not in stopwords.words("english"):
+                returnlist.append(x)
+        return returnlist
+
+#Initialization Function
 def getdataset():
     print('Loading Datasets ham and spam')
     hamfiles = glob.glob("dataset/allham/*.txt")
@@ -40,6 +49,8 @@ def getdataset():
             print("message empty, omitting")
             print(omsg)
         else:
+            msg = [x.lower() for x in msg]
+            msg = stopwordremover(msg)
             allhams.append(msg)
 
 
@@ -53,6 +64,8 @@ def getdataset():
             print("message empty, omitting")
             print(omsg)
         else:
+            msg = [x.lower() for x in msg]
+            msg = stopwordremover(msg)
             allspams.append(msg)
 
 
@@ -81,6 +94,7 @@ def train():
     with open('dataset/training.df', 'rb') as training_file:
         trainingdf = pickle.load(training_file)
     contents = pd.Series(trainingdf["content"])
+    print(contents)
 
 
 mainfunc()
