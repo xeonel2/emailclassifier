@@ -1,0 +1,26 @@
+{
+        "version": "0.2.0",
+        "configurations": [
+
+            {
+                "type": "python",
+                "request": "launch",
+                "name": "initialize",
+                "program": "${workspaceFolder}/main.py",
+                "args": [
+                    "initialize"
+                ],
+                "console": "integratedTerminal"
+            },
+            {
+                "type": "python",
+                "request": "launch",
+                "name": "train",
+                "program": "${workspaceFolder}/main.py",
+                "args": [
+                    "train"
+                ],
+                "console": "integratedTerminal"
+            }
+        ]
+    }

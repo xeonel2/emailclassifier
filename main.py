@@ -69,6 +69,6 @@ def train():
     print('Training using training.df')
     with open('dataset/training.df', 'rb') as training_file:
         trainingdf = pickle.load(training_file)
-    trainingdf.head()
+    print(pd.Series(trainingdf["content"]))
         
 mainfunc()
