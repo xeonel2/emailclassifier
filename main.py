@@ -31,3 +31,14 @@ allspams = []
 for spamfile in spamfiles:
     msg = open(spamfile, encoding="ascii", errors="surrogateescape").read()
     allspams.append(msg)
+
+
+hammessagesdf = pd.DataFrame({'content' : pd.Series(allhams),
+                           'spam' : False})
+    
+spammessagesdf = pd.DataFrame({'content' : pd.Series(allspams),
+                           'spam' : True})
+
+messagesdf = pd.concat([hammessagesdf, spammessagesdf])
+
+messagesdf = messagesdf.sample(frac=1).reset_index(drop=True)
