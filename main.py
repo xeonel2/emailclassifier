@@ -19,6 +19,8 @@ def mainfunc():
         print('Please pass the correct argument. (initialize, train,...)')
     elif sys.argv[1] == 'initialize':
         getdataset()
+    elif sys.argv[1] == 'train':
+        train()
     else:
         print("Invalid Commandline Arguments")
 
@@ -63,6 +65,10 @@ def getdataset():
     print("Initialized and parsed datasets to training.df and test.df")
     return
 
-
+def train():
+    print('Training using training.df')
+    with open('dataset/training.df', 'rb') as training_file:
+        trainingdf = pickle.load(training_file)
+    trainingdf.head()
         
 mainfunc()
