@@ -3,10 +3,11 @@
 """
 Created on Sun Dec  9 01:18:46 2018
 
-@author: xeonel
+@author: Venkatakrishnan Parthasarathy
 """
 import glob
 import pandas as pd
+import numpy as np
 from sklearn.model_selection import train_test_split
 import re
 import sys
@@ -33,6 +34,13 @@ def stopwordremover(bagofwords):
             if x not in stopwords.words("english"):
                 returnlist.append(x)
         return returnlist
+
+#Dtm
+def dtm(messages):
+    cv = CountVectorizer()
+    fitted = cv.fit_transform(messages)
+    df = pd.DataFrame(fitted.toarray(), columns=cv.get_feature_names())
+    return cv, df
 
 #Initialization Function
 def getdataset():
@@ -94,13 +102,23 @@ def train():
     print('Training using training.df')
     with open('dataset/training.df', 'rb') as training_file:
         trainingdf = pickle.load(training_file)
-    messages = pd.Series(trainingdf["content"])
-    messages = list(map(lambda x: " ".join(x) , messages))
+
+    smsgsdf = trainingdf[trainingdf['spam'] == True]
+    hmsgsdf = trainingdf[trainingdf['spam'] == False]
+
+
+    smessages = pd.Series(smsgsdf["content"])
+    smessages = list(map(lambda x: " ".join(x) , smessages))
+
+    hmessages = pd.Series(hmsgsdf["content"])
+    hmessages = list(map(lambda x: " ".join(x) , hmessages))
+
     #Document term matrix
-    cv = CountVectorizer()
-    fitted = cv.fit_transform(messages)
-    df = pd.DataFrame(fitted.toarray(), columns=cv.get_feature_names())
-    print(df)
+    spamcv, dtmspam = dtm(smessages)
+    hamcv, dtmham = dtm(hmessages)
 
-
+    # print(spamcv.get_feature_names())
+    spamdist = np.sum(dtmspam, axis=0)
+    hamdist = np.sum(dtmham, axis=0)
+ 
 mainfunc()
