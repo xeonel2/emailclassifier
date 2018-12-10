@@ -12,6 +12,7 @@ import re
 import sys
 import pickle
 from nltk.corpus import stopwords
+from sklearn.feature_extraction.text import CountVectorizer
 
 
 #Main Function
@@ -93,8 +94,13 @@ def train():
     print('Training using training.df')
     with open('dataset/training.df', 'rb') as training_file:
         trainingdf = pickle.load(training_file)
-    contents = pd.Series(trainingdf["content"])
-    print(contents)
+    messages = pd.Series(trainingdf["content"])
+    messages = list(map(lambda x: " ".join(x) , messages))
+    #Document term matrix
+    cv = CountVectorizer()
+    fitted = cv.fit_transform(messages)
+    df = pd.DataFrame(fitted.toarray(), columns=cv.get_feature_names())
+    print(df)
 
 
 mainfunc()
