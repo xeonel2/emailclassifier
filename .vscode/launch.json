@@ -15,10 +15,10 @@
             {
                 "type": "python",
                 "request": "launch",
-                "name": "clean",
+                "name": "extract",
                 "program": "${workspaceFolder}/main.py",
                 "args": [
-                    "clean"
+                    "extract"
                 ],
                 "console": "integratedTerminal"
             },
