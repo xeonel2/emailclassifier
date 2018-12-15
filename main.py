@@ -144,13 +144,13 @@ def explore_data():
         hamdist = pickle.load(hamdistfile)
     
     bar_chart_spam = pygal.HorizontalBar()
-    bar_chart_spam.x_labels = spamdist.sort_values(ascending=False)[:30].keys()
-    bar_chart_spam.add('spam', spamdist.sort_values(ascending=False)[:30].values)
+    bar_chart_spam.x_labels = spamdist.sort_values(ascending=False)[:20].keys()
+    bar_chart_spam.add('spam', spamdist.sort_values(ascending=False)[:20].values)
     bar_chart_spam.render_in_browser()
 
     bar_chart_ham = pygal.HorizontalBar()
-    bar_chart_ham.x_labels = hamdist.sort_values(ascending=False)[:30].keys()
-    bar_chart_ham.add('ham', hamdist.sort_values(ascending=False)[:30].values)
+    bar_chart_ham.x_labels = hamdist.sort_values(ascending=False)[:20].keys()
+    bar_chart_ham.add('ham', hamdist.sort_values(ascending=False)[:20].values)
     bar_chart_ham.render_in_browser()
     return
     
