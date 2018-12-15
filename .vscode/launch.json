@@ -21,6 +21,19 @@
                     "clean"
                 ],
                 "console": "integratedTerminal"
+            },
+            {
+                "type": "python",
+                "request": "launch",
+                "name": "explore",
+                "program": "${workspaceFolder}/main.py",
+                "args": [
+                    "explore"
+                ],
+                "console": "integratedTerminal"
             }
+            
+
+
         ]
     }

@@ -12,6 +12,7 @@ from sklearn.model_selection import train_test_split
 import re
 import sys
 import pickle
+import pygal
 from nltk.corpus import stopwords
 from sklearn.feature_extraction.text import CountVectorizer
 
@@ -19,19 +20,24 @@ from sklearn.feature_extraction.text import CountVectorizer
 #Main Function
 def mainfunc():
     if len(sys.argv) <= 1:
-        print('Please pass the correct argument. (initialize, train,...)')
+        print('Please pass the correct argument. (initialize, clean, explore, train...)')
     elif sys.argv[1] == 'initialize':
         getdataset()
     elif sys.argv[1] == 'clean':
         clean()
+    elif sys.argv[1] == 'explore':
+        explore_data()
     else:
         print("Invalid Commandline Arguments")
 
 #Remove Stop words
 def stopwordremover(bagofwords):
         returnlist = []
+        stopwrds = stopwords.words("english")
+        commonwords = ['com', 'please', 'company', '10', 'new', '00', 'may', 'business']
+        stopwrds.extend(commonwords)
         for x in bagofwords:
-            if x not in stopwords.words("english"):
+            if x not in stopwrds:
                 returnlist.append(x)
         return returnlist
 
@@ -121,8 +127,33 @@ def clean():
     spamdist = np.sum(dtmspam, axis=0)
     hamdist = np.sum(dtmham, axis=0)
 
-    # print(type(spamdist))
-    print(spamdist.sort_values(ascending=False))
-    print(hamdist.sort_values(ascending=False))
+
+
+    with open('dataset/spamdist.ps', 'wb') as spamdistfile:
+        pickle.dump(spamdist, spamdistfile)
+    with open('dataset/hamdist.ps', 'wb') as hamdistfile:
+        pickle.dump(hamdist, hamdistfile)
+    return
+
+
+    
+def explore_data():    
+    with open('dataset/spamdist.ps', 'rb') as spamdistfile:
+        spamdist = pickle.load(spamdistfile)
+    with open('dataset/hamdist.ps', 'rb') as hamdistfile:
+        hamdist = pickle.load(hamdistfile)
+    
+    bar_chart_spam = pygal.HorizontalBar()
+    bar_chart_spam.x_labels = spamdist.sort_values(ascending=False)[:30].keys()
+    bar_chart_spam.add('spam', spamdist.sort_values(ascending=False)[:30].values)
+    bar_chart_spam.render_in_browser()
+
+    bar_chart_ham = pygal.HorizontalBar()
+    bar_chart_ham.x_labels = hamdist.sort_values(ascending=False)[:30].keys()
+    bar_chart_ham.add('ham', hamdist.sort_values(ascending=False)[:30].values)
+    bar_chart_ham.render_in_browser()
+    return
+    
+
 
 mainfunc()
