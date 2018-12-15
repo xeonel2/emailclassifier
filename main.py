@@ -120,5 +120,9 @@ def clean():
     # print(spamcv.get_feature_names())
     spamdist = np.sum(dtmspam, axis=0)
     hamdist = np.sum(dtmham, axis=0)
- 
+
+    # print(type(spamdist))
+    print(spamdist.sort_values(ascending=False))
+    print(hamdist.sort_values(ascending=False))
+
 mainfunc()
