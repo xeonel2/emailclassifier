@@ -18,8 +18,8 @@ from sklearn.utils import shuffle
 from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer, TfidfVectorizer
 from sklearn.model_selection import KFold
 from sklearn.naive_bayes import MultinomialNB
-from sklearn.naive_bayes import MultinomialNB
 from sklearn.svm import LinearSVC
+from sklearn.linear_model import LogisticRegression
 from sklearn import metrics
 
 #Main Function
@@ -227,27 +227,31 @@ def trainer():
         tfX = pickle.load(tfXfile)
 
     
-    # training_models = [MultinomialNB(),LinearSVC()]
+    training_models =	{
+        "Naive-Bayes": MultinomialNB(),
+        "LinearSVC": LinearSVC(),
+        "LogisticRegression": LogisticRegression(multi_class='ovr', solver='liblinear')
+    }
 
-    nbmodel = MultinomialNB()
+    # nbmodel = MultinomialNB()
     # nbmodel.fit(tfX,labels)
 
-    with open('dataset/naive.model', 'wb') as naivemodelfile:
-        pickle.dump(nbmodel, naivemodelfile, protocol=4)
+    # with open('dataset/naive.model', 'wb') as naivemodelfile:
+    #     pickle.dump(nbmodel, naivemodelfile, protocol=4)
 
-    probabilities = []
     
-
-    validator = KFold(n_splits=15)
-    for trainidx, validx in validator.split(tfX):
-        nbmodel.fit(tfX[trainidx], labels[trainidx])
-        prediction = nbmodel.predict(tfX[validx])
-        prob = (np.mean(prediction == labels[validx]))
-        # print(prob)
-        probabilities.append(prob)
-        print(metrics.classification_report(labels[validx], prediction))
-    accuracy = sum(probabilities)/len(probabilities)
-    print(accuracy)
+    for name, m in training_models.items():
+        probabilities = []
+        validator = KFold(n_splits=15)
+        for trainidx, validx in validator.split(tfX):
+            m.fit(tfX[trainidx], labels[trainidx])
+            prediction = m.predict(tfX[validx])
+            prob = (np.mean(prediction == labels[validx]))
+            # print(prob)
+            probabilities.append(prob)
+            # print(metrics.classification_report(labels[validx], prediction))
+        accuracy = sum(probabilities)/len(probabilities)
+        print(name + ': ' + str(accuracy*100) + '%')
 
     return
 
