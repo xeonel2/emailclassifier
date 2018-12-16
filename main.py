@@ -21,11 +21,12 @@ from sklearn.naive_bayes import MultinomialNB
 from sklearn.svm import LinearSVC
 from sklearn.linear_model import LogisticRegression
 from sklearn import metrics
+import matplotlib.pyplot as plt
 
 #Main Function
 def mainfunc():
     if len(sys.argv) <= 1:
-        print('Please pass the correct argument. (initialize, extract, explore, train...)')
+        print('Please pass the correct argument. (initialize, extract, explore, train, test..)')
     elif sys.argv[1] == 'initialize':
         getdataset()
     elif sys.argv[1] == 'extract':
@@ -243,12 +244,20 @@ def trainer():
             m.fit(tfX[trainidx], labels[trainidx])
             prediction = m.predict(tfX[validx])
             prob = (np.mean(prediction == labels[validx]))
-            # print(prob)
             probabilities.append(prob)
             # print(metrics.classification_report(labels[validx], prediction))
         accuracy = sum(probabilities)/len(probabilities)
         print(name + ': ' + str(accuracy*100) + '%')
         accuracies.append(accuracy)
+
+    #plot accuracies
+    gauge_chart = pygal.Gauge(human_readable=True)
+    gauge_chart.title = 'Model comparison'
+    gauge_chart.range = [0.9, 1]
+    for a in accuracies:
+        gauge_chart.add(list(training_models)[accuracies.index(a)], a)
+    gauge_chart.render_in_browser()
+
 
     #Choosing the model with best accuracy
     print('Model with max accuracy: ' + list(training_models)[accuracies.index(max(accuracies))])
@@ -284,8 +293,7 @@ def test():
     labels = np.hstack([np.ones(len(smessages)),np.zeros(len(hmessages))])
 
     
-    # with open('dataset/tf.feature', 'rb') as tfXfile:
-    #     tfX = pickle.load(tfXfile)
+    #Getting the same vectorizer used to train to maintain the shape
     with open('dataset/tf.vectorizer', 'rb') as tfvectorizerfile:
         tfvectorizer = pickle.load(tfvectorizerfile)
 
@@ -299,6 +307,35 @@ def test():
     prediction = model.predict(tfX)
     accuracy = (np.mean(prediction == labels))
     print('Test Accuracy: ' + str(accuracy))
+
+    mean_sq_err = metrics.mean_squared_error(labels, prediction)
+    rmean_sq_err = np.sqrt(mean_sq_err)
+    print('RMS Out of sample error: ' + str(rmean_sq_err))
+
+    print(metrics.classification_report(labels, prediction))
+    
+    
+    
+    #plotting the ROC curve
+    falsepositive, truepositive, _ = metrics.roc_curve(labels, prediction)
+    plt.figure(1)
+    plt.plot([0, 1], [0, 1], 'k--')
+    plt.plot(falsepositive, truepositive)
+    plt.xlabel('False positive rate')
+    plt.ylabel('True positive rate')
+    plt.title('ROC curve')
+    plt.legend(loc='best')
+    plt.show()
+    
+    #get the AUC value
+    aucvalue = metrics.auc(falsepositive, truepositive)
+    print("AUC Value:" + str(aucvalue))
+
+    confusionmtx = metrics.confusion_matrix(prediction, labels)
+    print("Confusion Matrix:")
+    print(confusionmtx)
+    
+
     return
 
 mainfunc()
