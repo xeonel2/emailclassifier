@@ -14,19 +14,22 @@ import sys
 import pickle
 import pygal
 from nltk.corpus import stopwords
-from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer, TfidfVectorizer
+from sklearn.naive_bayes import MultinomialNB
 
 
 #Main Function
 def mainfunc():
     if len(sys.argv) <= 1:
-        print('Please pass the correct argument. (initialize, clean, explore, train...)')
+        print('Please pass the correct argument. (initialize, extract, explore, train...)')
     elif sys.argv[1] == 'initialize':
         getdataset()
     elif sys.argv[1] == 'extract':
         extract()
     elif sys.argv[1] == 'explore':
         explore_data()
+    elif sys.argv[1] == 'train':
+        trainer()
     else:
         print("Invalid Commandline Arguments")
 
@@ -34,6 +37,7 @@ def mainfunc():
 def stopwordremover(bagofwords):
         returnlist = []
         stopwrds = stopwords.words("english")
+        #Adding the common words frequently occuring in both spam and ham to stopwords
         commonwords = ['com', 'please', 'company', '10', 'new', '00', 'may', 'business']
         stopwrds.extend(commonwords)
         for x in bagofwords:
@@ -47,6 +51,17 @@ def dtm(messages):
     fitted = cv.fit_transform(messages)
     df = pd.DataFrame(fitted.toarray(), columns=cv.get_feature_names())
     return cv, df
+
+def tfidf(messages):
+    tfvectirzer = TfidfVectorizer()
+    fitted = tfvectirzer.fit_transform(messages)
+    # df = pd.DataFrame(fitted.toarray(), columns=tfvectirzer.get_feature_names())
+    return fitted
+
+def tfidftransform(countvec):
+    tidftrans = TfidfTransformer()
+    tfX = tfidf_transformer.fit_transform(countvec)
+    return tfX
 
 #Initialization Function
 def getdataset():
@@ -120,14 +135,14 @@ def extract():
     hmessages = list(map(lambda x: " ".join(x) , hmessages))
 
     #Document term matrix
-    spamcv, dtmspam = dtm(smessages)
-    hamcv, dtmham = dtm(hmessages)
+    _, dtmspam = dtm(smessages)
+    _, dtmham = dtm(hmessages)
 
     spamdist = np.sum(dtmspam, axis=0)
     hamdist = np.sum(dtmham, axis=0)
 
 
-    #Dumping the word frequencies for visualization and training
+    #Dumping the word frequencies for visualization
     with open('dataset/spamdist.ps', 'wb') as spamdistfile:
         pickle.dump(spamdist, spamdistfile)
     with open('dataset/hamdist.ps', 'wb') as hamdistfile:
@@ -147,6 +162,21 @@ def extract():
     with open('dataset/hamlengths.list', 'wb') as hamlengthsfile:
         pickle.dump(hmsgcounts, hamlengthsfile)
 
+    #Getting TFIDF
+    # _, tfspam = tfidf(smessages)
+    # _, tfham = tfidf(hmessages)
+    messages = smessages + hmessages
+
+
+    tfX = tfidf(messages)
+    labels = np.hstack([np.ones(len(smessages)),np.zeros(len(hmessages))])
+
+    #Dumping idf matrix to file for training
+    with open('dataset/labels.feature', 'wb') as labelfile:
+        pickle.dump(labels, labelfile, protocol=4)
+    
+    with open('dataset/tf.feature', 'wb') as tfXfile:
+        pickle.dump(tfX, tfXfile, protocol=4)
     return
 
 
@@ -183,6 +213,18 @@ def explore_data():
     pyramid_chart.render_in_browser()
     return
 
+def trainer():
+    with open('dataset/labels.feature', 'rb') as labelfile:
+        labels = pickle.load(labelfile)
+    with open('dataset/tf.feature', 'rb') as tfXfile:
+        tfX = pickle.load(tfXfile)
 
+    nbmodel = MultinomialNB()
+    nbmodel.fit(tfX,labels)
+
+    with open('dataset/naive.model', 'wb') as naivemodelfile:
+        pickle.dump(nbmodel, naivemodelfile, protocol=4)
+
+    return
 
 mainfunc()

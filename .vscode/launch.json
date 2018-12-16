@@ -31,6 +31,16 @@
                     "explore"
                 ],
                 "console": "integratedTerminal"
+            },
+            {
+                "type": "python",
+                "request": "launch",
+                "name": "train",
+                "program": "${workspaceFolder}/main.py",
+                "args": [
+                    "train"
+                ],
+                "console": "integratedTerminal"
             }
             
 
