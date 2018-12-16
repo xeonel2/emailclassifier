@@ -35,7 +35,7 @@ def mainfunc():
     elif sys.argv[1] == 'train':
         trainer()
     elif sys.argv[1] == 'test':
-        trainer()
+        test()
     else:
         print("Invalid Commandline Arguments")
 
@@ -62,7 +62,7 @@ def tfidf(messages):
     tfvectirzer = TfidfVectorizer()
     fitted = tfvectirzer.fit_transform(messages)
     # df = pd.DataFrame(fitted.toarray(), columns=tfvectirzer.get_feature_names())
-    return fitted
+    return tfvectirzer,fitted
 
 def tfidftransform(countvec):
     tidftrans = TfidfTransformer()
@@ -175,7 +175,7 @@ def extract():
     labels = np.hstack([np.ones(len(smessages)),np.zeros(len(hmessages))])
     messages, labels = shuffle(messages, labels, random_state=0)
 
-    tfX = tfidf(messages)
+    tfvectorizer, tfX = tfidf(messages)
     
 
     #Dumping idf matrix to file for training
@@ -184,6 +184,9 @@ def extract():
     
     with open('dataset/tf.feature', 'wb') as tfXfile:
         pickle.dump(tfX, tfXfile, protocol=4)
+
+    with open('dataset/tf.vectorizer', 'wb') as tfvectorizerfile:
+        pickle.dump(tfvectorizer, tfvectorizerfile, protocol=4)
     return
 
 
@@ -225,21 +228,14 @@ def trainer():
         labels = pickle.load(labelfile)
     with open('dataset/tf.feature', 'rb') as tfXfile:
         tfX = pickle.load(tfXfile)
-
     
     training_models =	{
         "Naive-Bayes": MultinomialNB(),
         "LinearSVC": LinearSVC(),
         "LogisticRegression": LogisticRegression(multi_class='ovr', solver='liblinear')
     }
-
-    # nbmodel = MultinomialNB()
-    # nbmodel.fit(tfX,labels)
-
-    # with open('dataset/naive.model', 'wb') as naivemodelfile:
-    #     pickle.dump(nbmodel, naivemodelfile, protocol=4)
-
     
+    accuracies = []
     for name, m in training_models.items():
         probabilities = []
         validator = KFold(n_splits=15)
@@ -252,11 +248,57 @@ def trainer():
             # print(metrics.classification_report(labels[validx], prediction))
         accuracy = sum(probabilities)/len(probabilities)
         print(name + ': ' + str(accuracy*100) + '%')
+        accuracies.append(accuracy)
+
+    #Choosing the model with best accuracy
+    print('Model with max accuracy: ' + list(training_models)[accuracies.index(max(accuracies))])
+    chosen_model = training_models[list(training_models)[accuracies.index(max(accuracies))]]
+
+    #Training the best model and saving to file
+    chosen_model.fit(tfX,labels)
+
+    with open('dataset/chosen.model', 'wb') as modelfile:
+        pickle.dump(chosen_model, modelfile, protocol=4)
 
     return
 
 def test():
+    print('Testing using dataset/test.df')
+    with open('dataset/test.df', 'rb') as test_file:
+        testdf = pickle.load(test_file)
+    #Get test feature matrix ready like training
+    smsgsdf = testdf[testdf['spam'] == True]
+    hmsgsdf = testdf[testdf['spam'] == False]
+
+
+    smessages = pd.Series(smsgsdf["content"])
+    smessages = list(map(lambda x: " ".join(x) , smessages))
+
+    hmessages = pd.Series(hmsgsdf["content"])
+    hmessages = list(map(lambda x: " ".join(x) , hmessages))
+
+    messages = smessages + hmessages
+    labels = np.hstack([np.ones(len(smessages)),np.zeros(len(hmessages))])
+
+    messages = smessages + hmessages
+    labels = np.hstack([np.ones(len(smessages)),np.zeros(len(hmessages))])
+
     
+    # with open('dataset/tf.feature', 'rb') as tfXfile:
+    #     tfX = pickle.load(tfXfile)
+    with open('dataset/tf.vectorizer', 'rb') as tfvectorizerfile:
+        tfvectorizer = pickle.load(tfvectorizerfile)
+
+    # testX = tfidf(messages)
+    tfX = tfvectorizer.transform(messages).todense()
+
+    #loading the chosen model
+    with open('dataset/chosen.model', 'rb') as modelfile:
+        model = pickle.load(modelfile)
+
+    prediction = model.predict(tfX)
+    accuracy = (np.mean(prediction == labels))
+    print('Test Accuracy: ' + str(accuracy))
     return
 
 mainfunc()
