@@ -35,10 +35,20 @@
             {
                 "type": "python",
                 "request": "launch",
-                "name": "train",
+                "name": "train and validate",
                 "program": "${workspaceFolder}/main.py",
                 "args": [
                     "train"
+                ],
+                "console": "integratedTerminal"
+            },
+            {
+                "type": "python",
+                "request": "launch",
+                "name": "test",
+                "program": "${workspaceFolder}/main.py",
+                "args": [
+                    "test"
                 ],
                 "console": "integratedTerminal"
             }

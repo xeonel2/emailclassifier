@@ -15,8 +15,10 @@ import pickle
 import pygal
 from nltk.corpus import stopwords
 from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer, TfidfVectorizer
+from sklearn.model_selection import KFold
 from sklearn.naive_bayes import MultinomialNB
-
+from sklearn.naive_bayes import MultinomialNB
+from sklearn.svm import LinearSVC
 
 #Main Function
 def mainfunc():
@@ -29,6 +31,8 @@ def mainfunc():
     elif sys.argv[1] == 'explore':
         explore_data()
     elif sys.argv[1] == 'train':
+        trainer()
+    elif sys.argv[1] == 'test':
         trainer()
     else:
         print("Invalid Commandline Arguments")
@@ -60,7 +64,7 @@ def tfidf(messages):
 
 def tfidftransform(countvec):
     tidftrans = TfidfTransformer()
-    tfX = tfidf_transformer.fit_transform(countvec)
+    tfX = tidftrans.fit_transform(countvec)
     return tfX
 
 #Initialization Function
@@ -219,12 +223,32 @@ def trainer():
     with open('dataset/tf.feature', 'rb') as tfXfile:
         tfX = pickle.load(tfXfile)
 
+    
+    # training_models = [MultinomialNB(),LinearSVC()]
+
     nbmodel = MultinomialNB()
-    nbmodel.fit(tfX,labels)
+    # nbmodel.fit(tfX,labels)
 
     with open('dataset/naive.model', 'wb') as naivemodelfile:
         pickle.dump(nbmodel, naivemodelfile, protocol=4)
 
+    probabilities = []
+    
+
+    validator = KFold(n_splits=15)
+    for trainidx, validx in validator.split(tfX):
+        nbmodel.fit(tfX[trainidx], labels[trainidx])
+        prediction = nbmodel.predict(tfX[validx])
+        prob = (np.mean(prediction == labels[validx]))
+        # print(prob)
+        probabilities.append(prob)
+        avg = sum(probabilities)/len(probabilities)
+        print(avg)
+
+    return
+
+def test():
+    
     return
 
 mainfunc()
