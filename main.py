@@ -14,11 +14,13 @@ import sys
 import pickle
 import pygal
 from nltk.corpus import stopwords
+from sklearn.utils import shuffle
 from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer, TfidfVectorizer
 from sklearn.model_selection import KFold
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.svm import LinearSVC
+from sklearn import metrics
 
 #Main Function
 def mainfunc():
@@ -170,10 +172,11 @@ def extract():
     # _, tfspam = tfidf(smessages)
     # _, tfham = tfidf(hmessages)
     messages = smessages + hmessages
-
+    labels = np.hstack([np.ones(len(smessages)),np.zeros(len(hmessages))])
+    messages, labels = shuffle(messages, labels, random_state=0)
 
     tfX = tfidf(messages)
-    labels = np.hstack([np.ones(len(smessages)),np.zeros(len(hmessages))])
+    
 
     #Dumping idf matrix to file for training
     with open('dataset/labels.feature', 'wb') as labelfile:
@@ -242,8 +245,9 @@ def trainer():
         prob = (np.mean(prediction == labels[validx]))
         # print(prob)
         probabilities.append(prob)
-        avg = sum(probabilities)/len(probabilities)
-        print(avg)
+        print(metrics.classification_report(labels[validx], prediction))
+    accuracy = sum(probabilities)/len(probabilities)
+    print(accuracy)
 
     return
 
